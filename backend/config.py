@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: list = [
         "http://localhost:3000",
         "http://localhost:5173",
-        "https://codeguard.vercel.app",
+        "https://codeguard-phi.vercel.app",
     ]
     MAX_FILES_PER_SCAN: int   = 20
     MAX_FILE_SIZE_KB: int     = 200
@@ -26,3 +26,4 @@ def get_settings() -> Settings:
     return Settings()
 
 settings = get_settings()
+
