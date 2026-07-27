@@ -6,7 +6,7 @@
 
 import axios from 'axios'
 
-const BASE = import.meta.env.VITE_API_URL || ''
+const BASE = import.meta.env.VITE_API_URL || 'https://codeguard-hch8.onrender.com'
 
 const http = axios.create({
   baseURL: BASE,
@@ -71,3 +71,4 @@ export const getRepoInfo = (url) =>
 /** Health check */
 export const healthCheck = () =>
   http.get('/api/health').then((r) => r.data)
+
