@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+﻿from pydantic_settings import BaseSettings
 from functools import lru_cache
 
 class Settings(BaseSettings):
@@ -11,6 +11,7 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:5173",
         "https://codeguard-phi.vercel.app",
+        "https://codeguard-pearl.vercel.app",
     ]
     MAX_FILES_PER_SCAN: int   = 20
     MAX_FILE_SIZE_KB: int     = 200
@@ -26,4 +27,3 @@ def get_settings() -> Settings:
     return Settings()
 
 settings = get_settings()
-
