@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down.")
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["GET","POST","PUT","DELETE","OPTIONS"], allow_headers=["*"])
 
 def _build_summary(all_vulns):
     from models import ScanSummary
@@ -114,5 +114,6 @@ async def repo_info(url: str):
 if __name__=="__main__":
     import uvicorn
     uvicorn.run("main:app",host="0.0.0.0",port=8000,reload=True)
+
 
 
