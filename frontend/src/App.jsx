@@ -1,24 +1,54 @@
-import { useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import Header from './components/Header'
-import Scanner from './pages/Scanner'
-import Benchmark from './pages/Benchmark'
-import History from './pages/History'
+import { useState } from 'react';
+import ScannerPage from './pages/ScannerPage';
+import HowItWorksPage from './pages/HowItWorksPage';
+import ResultsPage from './pages/ResultsPage';
+import Nav from './components/Nav';
+import PageTransition from './components/PageTransition';
 
+// Pages: 'scanner' | 'howitworks' | 'results'
 export default function App() {
-  useEffect(() => {
-    const saved = localStorage.getItem('cg-theme') || 'dark'
-    document.documentElement.setAttribute('data-theme', saved)
-  }, [])
+  const [page, setPage] = useState('scanner');
+  const [transitioning, setTransitioning] = useState(false);
+  const [scanResults, setScanResults] = useState(null);
+
+  function navigate(to) {
+    setTransitioning(true);
+    setTimeout(() => {
+      setPage(to);
+      setTransitioning(false);
+    }, 350);
+  }
+
+  function openResults(results) {
+    setScanResults(results);
+    navigate('results');
+  }
+
+  function closeResults() {
+    navigate('scanner');
+  }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <Header />
-      <Routes>
-        <Route path="/"          element={<Scanner />}   />
-        <Route path="/benchmark" element={<Benchmark />} />
-        <Route path="/history"   element={<History />}   />
-      </Routes>
-    </div>
-  )
+    <>
+      <PageTransition active={transitioning} />
+
+      {page !== 'results' && (
+        <Nav currentPage={page} onNavigate={navigate} />
+      )}
+
+      {page === 'scanner' && (
+        <ScannerPage onNavigate={navigate} onResults={openResults} />
+      )}
+      {page === 'howitworks' && (
+        <HowItWorksPage onNavigate={navigate} />
+      )}
+      {page === 'results' && (
+        <ResultsPage
+          results={scanResults}
+          onClose={closeResults}
+          onNewScan={closeResults}
+        />
+      )}
+    </>
+  );
 }

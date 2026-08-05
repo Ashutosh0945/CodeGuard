@@ -1,73 +1,42 @@
-/**
- * api/client.js
- * All backend API calls. Uses Vite proxy in dev (/api → localhost:8000).
- * In production, set VITE_API_URL in .env to your Render/Railway backend URL.
- */
+// ── Orion API Client ─────────────────────────────────────────────────────────
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://codeguard-production-c6ce.up.railway.app';
 
-import axios from 'axios'
-
-const BASE = import.meta.env.VITE_API_URL || ''
-
-const http = axios.create({
-  baseURL: BASE,
-  timeout: 180_000,   // 3 min — LLM scans can be slow
-  headers: { 'Content-Type': 'application/json' },
-})
-
-// ── Interceptors ───────────────────────────────────────────
-http.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    const msg =
-      err.response?.data?.detail ||
-      err.response?.data?.message ||
-      err.message ||
-      'Unknown error'
-    return Promise.reject(new Error(msg))
+async function request(method, path, body = null, isFormData = false) {
+  const opts = {
+    method,
+    headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+  };
+  if (body) opts.body = isFormData ? body : JSON.stringify(body);
+  const res = await fetch(`${BASE_URL}${path}`, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || `Request failed: ${res.status}`);
   }
-)
-
-// ── API calls ──────────────────────────────────────────────
-
-/** Scan a GitHub repository */
-export const scanRepo = (repoUrl, branch = 'main', maxFiles = 20) =>
-  http.post('/api/scan/repo', { repo_url: repoUrl, branch, max_files: maxFiles })
-    .then((r) => r.data)
-
-/** Scan a single file passed as text */
-export const scanFile = (filename, content, language = 'python') =>
-  http.post('/api/scan/file', { filename, content, language })
-    .then((r) => r.data)
-
-/** Upload file(s) as multipart/form-data */
-export const scanUpload = (files) => {
-  const form = new FormData()
-  files.forEach((f) => form.append('files', f))
-  return http.post('/api/scan/upload', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  }).then((r) => r.data)
+  return res.json();
 }
 
-/** Ask Groq a question about a specific vulnerability */
-export const askAI = (question, vuln) =>
-  http.post('/api/ask', {
-    question,
-    vuln_type:   vuln.type,
-    cwe:         vuln.cwe || 'CWE-unknown',
-    file_path:   vuln.file,
-    description: vuln.description,
-  }).then((r) => r.data)
+export async function scanRepo(repoUrl) {
+  return request('POST', '/api/scan/repo', { repo_url: repoUrl, max_files: 15 });
+}
 
-/** Get benchmark results (LLM vs Bandit vs Semgrep) */
-export const getBenchmark = (useLlm = false) =>
-  http.get('/api/benchmark', { params: { use_llm: useLlm } })
-    .then((r) => r.data)
+export async function scanFile(filename, content, language = 'python') {
+  return request('POST', '/api/scan/file', { filename, content, language });
+}
 
-/** Get repo metadata */
-export const getRepoInfo = (url) =>
-  http.get('/api/repo-info', { params: { url } })
-    .then((r) => r.data)
+export async function scanUpload(files) {
+  const form = new FormData();
+  files.forEach((f) => form.append('files', f));
+  return request('POST', '/api/scan/upload', form, true);
+}
 
-/** Health check */
-export const healthCheck = () =>
-  http.get('/api/health').then((r) => r.data)
+export async function askAboutVuln(question, context = '') {
+  return request('POST', '/api/ask', { question, context });
+}
+
+export async function getBenchmark() {
+  return request('GET', '/api/benchmark');
+}
+
+export async function getHealth() {
+  return request('GET', '/api/health');
+}
