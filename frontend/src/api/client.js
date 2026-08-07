@@ -1,5 +1,5 @@
 // ── Orion API Client ─────────────────────────────────────────────────────────
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://codeguard-production-c6ce.up.railway.app';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://codeguard-production-4f16.up.railway.app';
 
 async function request(method, path, body = null, isFormData = false) {
   const opts = {
@@ -40,3 +40,4 @@ export async function getBenchmark() {
 export async function getHealth() {
   return request('GET', '/api/health');
 }
+
