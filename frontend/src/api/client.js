@@ -24,9 +24,29 @@ export async function scanFile(filename, content, language = 'python') {
 }
 
 export async function scanUpload(files) {
-  const form = new FormData();
-  files.forEach((f) => form.append('files', f));
-  return request('POST', '/api/scan/upload', form, true);
+  const file = files[0];
+  const text = await file.text();
+  const ext = file.name.split('.').pop().toLowerCase();
+  const langMap = {py:'python',js:'javascript',ts:'typescript',java:'java',php:'php',go:'go',rb:'ruby',cpp:'cpp',c:'c',cs:'csharp'};
+  const lang = langMap[ext] || 'python';
+  const data = await request('POST', '/api/scan/file', {filename: file.name, content: text, language: lang});
+  const vulns = data.all_vulnerabilities || [];
+  const lines = text.split('\n');
+  return {
+    files: {
+      [file.name]: {
+        language: lang,
+        code: lines,
+        vulnerabilities: vulns.map(v => ({
+          line: v.line || 1,
+          severity: (v.severity || 'medium').toLowerCase(),
+          title: v.type || 'Issue',
+          description: v.description || '',
+          fix: v.fix || ''
+        }))
+      }
+    }
+  };
 }
 
 export async function askAboutVuln(question, context = '') {
