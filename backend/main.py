@@ -22,6 +22,10 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("Shutting down.")
 
+@app.options('/{rest_of_path:path}')
+async def preflight(rest_of_path: str):
+    return {}
+
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=lifespan)
 
 app.add_middleware(
@@ -31,6 +35,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(rest_of_path: str):
+    return {"status": "ok"}
 
 def _build_summary(all_vulns):
     summary = ScanSummary()
@@ -146,4 +153,5 @@ if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 # force redeploy
 # cors fix 08/08/2026 18:33:20
+
 
