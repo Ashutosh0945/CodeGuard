@@ -22,10 +22,6 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("Shutting down.")
 
-@app.options('/{rest_of_path:path}')
-async def preflight(rest_of_path: str):
-    return {}
-
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=lifespan)
 
 app.add_middleware(
