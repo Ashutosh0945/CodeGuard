@@ -1,5 +1,4 @@
-﻿// Orion API Client - rebuilt 08/09/2026 21:47:00
-// â”€â”€ Orion API Client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Orion API Client
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://codeguard-22e4.onrender.com';
 
 async function request(method, path, body = null, isFormData = false) {
@@ -30,7 +29,7 @@ export async function scanUpload(files) {
   const ext = file.name.split('.').pop().toLowerCase();
   const langMap = {py:'python',js:'javascript',ts:'typescript',java:'java',php:'php',go:'go',rb:'ruby',cpp:'cpp',c:'c',cs:'csharp'};
   const lang = langMap[ext] || 'python';
-  const data = await request('POST', '/api/scan/file', {filename: file.name, content: text, language: lang});
+  const data = await request('POST', '/api/scan/file', { filename: file.name, content: text, language: lang });
   const vulns = data.all_vulnerabilities || [];
   const lines = text.split('\n');
   return {
@@ -61,7 +60,3 @@ export async function getBenchmark() {
 export async function getHealth() {
   return request('GET', '/api/health');
 }
-
-
-// updated
-// rebuild 08/09/2026 10:45:30
