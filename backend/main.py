@@ -1,4 +1,4 @@
-﻿import logging, time
+import logging, time
 from contextlib import asynccontextmanager
 from typing import List
 from fastapi import FastAPI, HTTPException, UploadFile, File
@@ -23,18 +23,6 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down.")
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=lifespan)
-from fastapi.responses import Response
-
-@app.options("/{full_path:path}")
-async def options_handler(full_path: str):
-    return Response(
-        status_code=200,
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "*",
-        }
-    )
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,6 +31,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    return JSONResponse(
+        content={},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Max-Age": "86400",
+        }
+    )
 
 def _build_summary(all_vulns):
     summary = ScanSummary()
@@ -156,5 +156,3 @@ async def repo_info(url: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-
-
