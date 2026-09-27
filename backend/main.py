@@ -1,9 +1,11 @@
 import logging, time
 from contextlib import asynccontextmanager
 from typing import List
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 from config import settings
 from models import (RepoScanRequest, FileScanRequest, AskRequest,
     ScanResponse, FileResult, ScanSummary, Vulnerability, Severity, Source, AskResponse)
@@ -24,25 +26,25 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=lifespan)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+class CORSMiddlewareCustom(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.method == "OPTIONS":
+            return Response(
+                status_code=200,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept",
+                    "Access-Control-Max-Age": "86400",
+                }
+            )
+        response = await call_next(request)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept"
+        return response
 
-@app.options("/{full_path:path}")
-async def options_handler(full_path: str):
-    return JSONResponse(
-        content={},
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "*",
-            "Access-Control-Max-Age": "86400",
-        }
-    )
+app.add_middleware(CORSMiddlewareCustom)
 
 def _build_summary(all_vulns):
     summary = ScanSummary()
