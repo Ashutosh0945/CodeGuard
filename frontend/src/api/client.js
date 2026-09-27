@@ -1,5 +1,5 @@
-// Orion API Client
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://codeguard-22e4.onrender.com';
+﻿// Orion API Client
+const BASE_URL = 'https://corsproxy.io/?https://codeguard-22e4.onrender.com';
 
 async function request(method, path, body = null, isFormData = false) {
   const opts = {
@@ -94,3 +94,4 @@ export async function getBenchmark() {
 export async function getHealth() {
   return request('GET', '/api/health');
 }
+
