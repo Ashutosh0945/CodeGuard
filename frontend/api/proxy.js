@@ -3,7 +3,6 @@
     bodyParser: true,
     responseLimit: false,
   },
-  maxDuration: 120,
 };
 
 export default async function handler(req, res) {
@@ -18,7 +17,7 @@ export default async function handler(req, res) {
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 110000);
+    const timeout = setTimeout(() => controller.abort(), 25000);
 
     const fetchOpts = {
       method: req.method,
@@ -35,16 +34,9 @@ export default async function handler(req, res) {
     const response = await fetch(backendUrl, fetchOpts);
     clearTimeout(timeout);
 
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      const data = await response.json();
-      return res.status(response.status).json(data);
-    } else {
-      const text = await response.text();
-      return res.status(response.status).send(text);
-    }
+    const data = await response.json();
+    return res.status(response.status).json(data);
   } catch (err) {
-    console.error("Proxy error:", err.message);
     return res.status(500).json({ detail: err.message });
   }
 }
